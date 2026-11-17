@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>МЭШ — Журнал (тест)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 13px; color: #212121; background: #f5f6f8;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ===== ШАПКА ===== */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; padding: 0 20px; background: #fff;
+    border-bottom: 1px solid #e0e2e7; position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 24px; }
+  .logo { font-weight: 800; font-size: 20px; letter-spacing: 1px; background: #ffcc00; padding: 4px 10px; border-radius: 4px; }
+  .nav-menu { display: flex; gap: 4px; }
+  .nav-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; padding: 8px 12px; border-radius: 6px; font-size: 13px; color: #5a5c66; }
+  .nav-btn:hover { background: #f0f1f4; }
+  .nav-btn.active { color: #212121; font-weight: 600; }
+  .nav-icon { width: 16px; height: 16px; fill: currentColor; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f0f1f4; display: flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 18px; height: 18px; fill: #5a5c66; }
+  .user-info { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #c0d9f7; color: #12467a; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .user-name { font-weight: 600; font-size: 13px; }
+  .user-role { font-size: 11px; color: #87879b; }
+
+  /* ===== LAYOUT ===== */
+  .app { display: flex; min-height: calc(100vh - 56px); }
+  .sidebar { width: 300px; background: #fff; border-right: 1px solid #e0e2e7; padding: 16px 12px; flex-shrink: 0; overflow-y: auto; }
+  .nav-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #87879b; padding: 12px 12px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 6px; color: #5a5c66; font-size: 13px; }
+  .nav-item:hover { background: #f0f1f4; }
+  .nav-item.active { background: #e8f1fd; color: #0b57d0; font-weight: 600; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* ===== ПОДЗАГОЛОВОК ===== */
+  .subheader { background: #fff; border-bottom: 1px solid #e0e2e7; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+  .back-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: #f0f1f4; display: flex; align-items: center; justify-content: center; }
+  .back-btn svg { width: 18px; height: 18px; fill: #5a5c66; }
+  .journal-title { font-size: 15px; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .help-btn { margin-left: auto; }
+
+  /* ===== ПАНЕЛЬ УПРАВЛЕНИЯ ===== */
+  .controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 20px; background: #fff; border-bottom: 1px solid #e0e2e7; }
+  .ctrl-btn { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d0d3d9; border-radius: 6px; padding: 7px 12px; font-size: 13px; color: #5a5c66; }
+  .ctrl-btn:hover { background: #f0f1f4; }
+  .ctrl-btn.active { background: #e8f1fd; border-color: #0b57d0; color: #0b57d0; }
+  .ctrl-btn svg { width: 16px; height: 16px; fill: currentColor; }
+  .mode-switch { display: flex; border: 1px solid #d0d3d9; border-radius: 6px; overflow: hidden; }
+  .mode-switch .ctrl-btn { border: none; border-radius: 0; }
+  .mode-switch .ctrl-btn + .ctrl-btn { border-left: 1px solid #d0d3d9; }
+  .controls-right { margin-left: auto; display: flex; gap: 8px; }
+  .icon-only { padding: 7px 9px; }
+
+  /* ===== ЖУРНАЛ ===== */
+  .journal-wrap { flex: 1; overflow: auto; background: #fff; padding-bottom: 20px; }
+  .journal-toolbar { display: flex; align-items: center; gap: 16px; padding: 10px 20px; border-bottom: 1px solid #e0e2e7; background: #fafbfc; font-size: 12px; color: #5a5c66; }
+  .journal-toolbar .select-like { border: 1px solid #d0d3d9; border-radius: 4px; padding: 4px 10px; background: #fff; }
+
+  table.journal { border-collapse: collapse; width: 100%; font-size: 12px; }
+  table.journal th, table.journal td { border: 1px solid #e0e2e7; text-align: center; padding: 0; vertical-align: middle; background: #fff; }
+  table.journal th { background: #f5f6f8; font-weight: 600; color: #5a5c66; }
+  .topic-head { background: #eef3fb !important; color: #12467a !important; font-size: 11px; padding: 6px 4px; height: 44px; vertical-align: middle; }
+  .topic-head .topic-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; max-height: 2.6em; }
+  .avg-head { background: #fdf3e7 !important; color: #a05a00 !important; font-size: 11px; padding: 4px; }
+  .date-head { background: #eef3fb !important; color: #12467a !important; font-size: 11px; height: 34px; }
+  .kind-head { font-size: 10px; color: #87879b; height: 26px; background: #f5f6f8; }
+
+  .student-cell { display: flex; align-items: center; gap: 8px; padding: 6px 10px; text-align: left; min-width: 220px; position: sticky; left: 0; background: #fff; z-index: 5; }
+  .student-num { color: #87879b; font-size: 11px; width: 18px; text-align: right; }
+  .student-name { font-size: 12px; color: #212121; white-space: nowrap; }
+  .row-alt td { background: #fafbfc; }
+  .row-alt .student-cell { background: #fafbfc; }
+
+  td.mark-cell { width: 40px; min-width: 40px; height: 40px; cursor: pointer; position: relative; }
+  td.mark-cell:hover { background: #e8f1fd; }
+  td.mark-cell.filled { background: #e8f6ee; }
+  td.mark-cell .mark { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-weight: 700; font-size: 12px; color: #fff; }
+  .mark-5 { background: #2e9e5b; }
+  .mark-4 { background: #4a90d9; }
+  .mark-3 { background: #e6a23c; }
+  .mark-2 { background: #d9534f; }
+  .mark-b { background: #a05a00; font-size: 11px; }
+  .mark-n { background: #7a7a8c; }
+  td.avg-cell { background: #fdf7ee; color: #a05a00; font-weight: 600; width: 48px; }
+  .sticky-col { position: sticky; left: 0; background: #fff; z-index: 4; }
+
+  /* ===== ПОПАП ВЫБОРА ОЦЕНКИ ===== */
+  .grade-popup {
+    position: absolute; z-index: 1000; width: 280px;
+    background: #fff; border: 1px solid #d0d3d9; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.16);
+    padding: 12px; font-size: 12px;
+    display: none;
+  }
+  .grade-popup.open { display: block; }
+  .grade-popup .popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #eef0f3;
+  }
+  .grade-popup .popup-head strong { font-size: 12px; color: #212121; }
+  .grade-popup .popup-close { border: none; background: transparent; font-size: 16px; color: #87879b; padding: 0 4px; }
+  .grade-popup .popup-label { font-size: 11px; color: #87879b; margin: 8px 0 4px; }
+  .grade-popup .grade-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .grade-popup .grade-opt {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid #d0d3d9;
+    background: #fff; font-weight: 700; font-size: 12px; color: #5a5c66;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .grade-popup .grade-opt:hover { background: #f0f1f4; }
+  .grade-popup .grade-opt.selected { background: #0b57d0; border-color: #0b57d0; color: #fff; }
+  .grade-popup .type-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .grade-popup .type-opt {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid #d0d3d9;
+    background: #fff; font-size: 11px; color: #5a5c66;
+  }
+  .grade-popup .type-opt:hover { background: #f0f1f4; }
+  .grade-popup .type-opt.selected { background: #e8f1fd; border-color: #0b57d0; color: #0b57d0; font-weight: 600; }
+  .grade-popup .popup-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 12px; padding-top: 8px; border-top: 1px solid #eef0f3;
+  }
+  .grade-popup .popup-actions button {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid #d0d3d9;
+    background: #fff; font-size: 12px; color: #5a5c66;
+  }
+  .grade-popup .popup-actions .primary {
+    background: #0b57d0; border-color: #0b57d0; color: #fff; font-weight: 600;
+  }
+  .grade-popup .popup-actions .danger { color: #d9534f; border-color: #f0c0be; }
+  .grade-popup .popup-actions .danger:hover { background: #fdecea; }
+
+  /* ===== НИЖНЯЯ ПАНЕЛЬ ===== */
+  .lessons-panel { border-top: 1px solid #e0e2e7; background: #fff; }
+  .lessons-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #e0e2e7; font-weight: 700; font-size: 14px; }
+  table.lessons { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.lessons th, table.lessons td { border-bottom: 1px solid #eef0f3; padding: 8px 14px; text-align: left; }
+  table.lessons th { background: #fafbfc; color: #5a5c66; font-weight: 600; }
+  table.lessons tr:hover td { background: #fafbfc; }
+  .hw-none { color: #87879b; }
+
+  /* ===== ФУТЕР ===== */
+  .footer { border-top: 1px solid #e0e2e7; background: #fff; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #87879b; }
+  .footer a { color: #5a5c66; margin-right: 16px; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #c9ccd4; border-radius: 5px; }
+  ::-webkit-scrollbar-track { background: #f0f1f4; }
+</style>
+</head>
+<body>
+
+<!-- ================= ШАПКА ================= -->
+<header class="header">
+  <div class="header-left">
+    <a href="#" class="logo">МЭШ</a>
+    <nav class="nav-menu">
+      <button class="nav-btn active">Кабинет преподавателя СПО</button>
+      <button class="nav-btn">Библиотека</button>
+      <button class="nav-btn">Справка</button>
+      <button class="nav-btn">Mos.ru ↗</button>
+    </nav>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" title="Уведомления">
+      <svg viewBox="0 0 22 22"><path d="M5.055 14.667l1.082-1.084a1.82 1.82 0 0 0 .537-1.296V8c0-1.244.54-2.433 1.485-3.26a4.272 4.272 0 0 1 3.426-1.035c2.133.283 3.741 2.212 3.741 4.487v4.095c0 .49.191.95.537 1.295l1.082 1.085H5.055z"/></svg>
+    </button>
+    <div class="user-info">
+      <div class="avatar">ОМ</div>
+      <div>
+        <div class="user-name">Ольга</div>
+        <div class="user-role">Преподаватель СПО</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="nav-group-title">Мои инструменты</div>
+    <a href="#" class="nav-item">Моё расписание</a>
+    <a href="#" class="nav-item">Мероприятия</a>
+    <div class="nav-group-title">Учебный процесс</div>
+    <a href="#" class="nav-item">Тематическое планирование</a>
+    <a href="#" class="nav-item active">Мои группы</a>
+    <a href="#" class="nav-item">Домашние задания</a>
+    <div class="nav-group-title">Руководство группой</div>
+    <a href="#" class="nav-item">Студенты и законные представители</a>
+    <a href="#" class="nav-item">Расписание группы</a>
+    <a href="#" class="nav-item">Журналы группы</a>
+    <a href="#" class="nav-item">Уведомление о пропусках</a>
+    <div class="nav-group-title">Анализ</div>
+    <a href="#" class="nav-item">Отсутствующие сегодня</a>
+    <a href="#" class="nav-item">Промежуточная аттестация</a>
+    <div class="nav-group-title">Дополнительно</div>
+    <a href="#" class="nav-item">Полезные ссылки</a>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <div class="subheader">
+      <button class="back-btn" title="Назад">
+        <svg viewBox="0 0 24 24"><path d="M19 11H7.135l3.633-4.36a1 1 0 1 0-1.536-1.28l-5 6c-.039.047-.059.102-.088.154-.024.042-.053.078-.071.124a.985.985 0 0 0-.072.358L4 12l.001.004c0 .122.027.243.072.358.018.046.047.082.071.124.029.052.049.107.088.154l5 6a.999.999 0 1 0 1.536-1.28L7.135 13H19a1 1 0 0 0 0-2Z"/></svg>
+      </button>
+      <h1 class="journal-title">Журнал УП.01.01 Учебная практика/ 1ИИ-1-11-26/ Курс 1/ 09.02.13</h1>
+      <button class="back-btn help-btn" title="Справка">
+        <svg viewBox="0 0 24 24"><path d="M11 8a1 1 0 0 1 2 0v5a1 1 0 0 1-2 0V8Zm0 8a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm1 4c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8Zm0-18C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2Z"/></svg>
+      </button>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn active" data-test-component="JournalControlPanelMode">Быстрый режим</button>
+      <div class="mode-switch">
+        <button class="ctrl-btn active" title="Стандартный режим" data-test-component="JournalControlPanelView-journal">Стандартный</button>
+        <button class="ctrl-btn" title="Промежуточная аттестация" data-test-component="JournalControlPanelView-journalResults">Аттестация</button>
+        <button class="ctrl-btn" title="Занятие + КТП" data-test-component="JournalControlPanelView-journalLessons">Занятие+КТП</button>
+      </div>
+      <div class="controls-right">
+        <button class="ctrl-btn icon-only" title="Фильтры">Фильтр</button>
+        <button class="ctrl-btn icon-only" title="Слои">Слои</button>
+        <button class="ctrl-btn icon-only" title="Настройки">⚙</button>
+        <button class="ctrl-btn icon-only" title="Экспорт">⇩</button>
+        <button class="ctrl-btn icon-only" title="Помощь">?</button>
+      </div>
+    </div>
+
+    <!-- ===== ЖУРНАЛ ===== -->
+    <div class="journal-wrap" id="journal-wrap">
+      <div class="journal-toolbar">
+        <span class="select-like">/ УП.01.01 Учебная практика · 1ИИ-1-11-26</span>
+        <span class="select-like">Не назначен</span>
+        <span style="font-weight:600;color:#212121;">Список студентов</span>
+      </div>
+
+      <table class="journal" id="journal-table">
+        <!-- Заполняется скриптом: точно как в оригинале -->
+      </table>
+    </div>
+
+    <!-- ===== ЗАНЯТИЯ ===== -->
+    <div class="lessons-panel">
+      <div class="lessons-head"><span>Занятия и домашние задания</span></div>
+      <div style="max-height:260px;overflow:auto;">
+        <table class="lessons">
+          <thead><tr><th style="width:40px;">№</th><th style="width:90px;">Дата</th><th>Тема занятия</th><th style="width:160px;">ДЗ</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div><a href="#">О проекте</a><a href="#">Пользовательское соглашение</a><span>☎ +7 (495) 539-38-38</span></div>
+      <div>Департамент образования и науки города Москвы · ДИТ города Москвы</div>
+      <div>Версия 9.5.0</div>
+    </footer>
+  </main>
+</div>
+
+<!-- =========================================================
+     ПОПАП ВЫБОРА ОЦЕНКИ
+     ========================================================= -->
+<div class="grade-popup" id="grade-popup">
+  <div class="popup-head">
+    <strong id="popup-title">Оценка</strong>
+    <button class="popup-close" id="popup-close">✕</button>
+  </div>
+
+  <div class="popup-label">Оценка</div>
+  <div class="grade-row" id="grade-row">
+    <button class="grade-opt" data-grade="5">5</button>
+    <button class="grade-opt" data-grade="4">4</button>
+    <button class="grade-opt" data-grade="3">3</button>
+    <button class="grade-opt" data-grade="2">2</button>
+    <button class="grade-opt" data-grade="б">б</button>
+    <button class="grade-opt" data-grade="н">н</button>
+  </div>
+
+  <div class="popup-label">Тип работы</div>
+  <div class="type-row" id="type-row">
+    <button class="type-opt selected" data-type="ДП">ДП</button>
+    <button class="type-opt" data-type="КР">КР</button>
+    <button class="type-opt" data-type="СР">СР</button>
+    <button class="type-opt" data-type="ЛР">ЛР</button>
+    <button class="type-opt" data-type="ПР">ПР</button>
+    <button class="type-opt" data-type="КТП">КТП</button>
+    <button class="type-opt" data-type="итог">итог</button>
+  </div>
+
+  <div class="popup-actions">
+    <button class="danger" id="popup-clear">Очистить</button>
+    <button id="popup-cancel">Отмена</button>
+    <button class="primary" id="popup-save">Сохранить</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ДАННЫЕ
+   ========================================================= */
+
+// Темы в порядке следования (title + количество столбцов)
+const TOPICS = [
+  { title: "Установка и настройка окружения (Python, VS Code, виртуальное окружение, менеджер пакетов)", cols: 10, date: "12 окт." },
+  { title: "Отработка базового синтаксиса Python на практических задачах: работа со строками, списками, словарями, файлами", cols: 18, date: "13 окт. – 15 окт." },
+  { title: "Работа с библиотеками NumPy и Pandas: загрузка, фильтрация, агрегация табличных данных", cols: 18, date: "15 окт. – 17 окт." },
+  { title: "Визуализация данных с помощью Matplotlib", cols: 10, date: "17 окт. – 19 окт." },
+  { title: "Работа с Git: создание репозитория, ветвление, commit/push/pull, разрешение конфликтов", cols: 10, date: "20 окт. – 21 окт." },
+  { title: "Подключение к LLM API на Python, обработка JSON-ответов", cols: 12, date: "21 окт. – 23 окт." },
+  { title: "Разработка промпт-шаблонов и простого диалогового бота с историей", cols: 12, date: "23 окт. – 24 окт." },
+  { title: "Логирование и обработка ошибок API-запросов", cols: 8, date: "26 окт." },
+  { title: "Реализация структурированного вывода (Pydantic)", cols: 9, date: "27 окт. – 28 окт." },
+  { title: "Подготовка корпуса документов для RAG: сбор, очистка, разбивка на фрагменты", cols: 14, date: "28 окт. – 30 окт." },
+  { title: "Создание векторного хранилища и настройка поиска по документам", cols: 15, date: "31 окт. – 3 нояб." },
+  { title: "Сборка RAG-цепочки и проверка качества ответов на тестовых вопросах", cols: 13, date: "3 нояб. – 7 нояб." },
+  { title: "Разработка инструментов агента и сборка агента с доступом к RAG", cols: 11, date: "7 нояб. – 10 нояб." },
+  { title: "Тестирование агента, оформление кода и проведение code review в Git", cols: 7, date: "11 нояб. – 12 нояб." },
+  { title: "Подготовка и защита отчёта по учебной практике", cols: 5, date: "13 нояб. – 14 нояб." }
+];
+
+const STUDENTS = [
+  "Антонова Ангелина", "Багаутдинова Арина", "Баулин Лука", "Глушкова Татьяна",
+  "Грибов Михаил", "Долгих Виктор", "Закутный Илья", "Кашапов Радмир",
+  "Ковалева Анастасия", "Кольцов Григорий", "Конякина Татьяна", "Лучаев Ефим",
+  "Макарова Мария", "Новоселов Герман", "Парамонова Валерия", "Плужник Анастасия",
+  "Рахматулин Данил", "Рогацкая Кира", "Рыжова Виктория", "Сардарь Надежда",
+  "Серёжин Артемий", "Спиридонова Вероника", "Тарасов Кирилл", "Федоровская София",
+  "Юмагужина Алисса"
+];
+
+const LESSONS = [
+  ["12 окт.", "Установка и настройка окружения (Python, VS Code, виртуальное окружение, менеджер пакетов)"],
+  ["13 окт.", "Отработка базового синтаксиса Python на практических задачах: работа со строками, списками, словарями, файлами"],
+  ["15 окт.", "Работа с библиотеками NumPy и Pandas: загрузка, фильтрация, агрегация табличных данных"],
+  ["17 окт.", "Визуализация данных с помощью Matplotlib"],
+  ["19 окт.", "Визуализация данных с помощью Matplotlib"],
+  ["20 окт.", "Работа с Git: создание репозитория, ветвление, commit/push/pull, разрешение конфликтов"],
+  ["21 окт.", "Подключение к LLM API на Python, обработка JSON-ответов"],
+  ["23 окт.", "Разработка промпт-шаблонов и простого диалогового бота с историей"],
+  ["26 окт.", "Логирование и обработка ошибок API-запросов"],
+  ["27 окт.", "Реализация структурированного вывода (Pydantic)"],
+  ["28 окт.", "Подготовка корпуса документов для RAG: сбор, очистка, разбивка на фрагменты"],
+  ["30 окт.", "Подготовка корпуса документов для RAG: сбор, очистка, разбивка на фрагменты"],
+  ["31 окт.", "Создание векторного хранилища и настройка поиска по документам"],
+  ["2 нояб.", "Создание векторного хранилища и настройка поиска по документам"],
+  ["3 нояб.", "Создание векторного хранилища и настройка поиска по документам"],
+  ["5 нояб.", "Сборка RAG-цепочки и проверка качества ответов на тестовых вопросах"],
+  ["6 нояб.", "Сборка RAG-цепочки и проверка качества ответов на тестовых вопросах"],
+  ["7 нояб.", "Разработка инструментов агента и сборка агента с доступом к RAG"],
+  ["9 нояб.", "Разработка инструментов агента и сборка агента с доступом к RAG"],
+  ["10 нояб.", "Разработка инструментов агента и сборка агента с доступом к RAG"],
+  ["11 нояб.", "Тестирование агента, оформление кода и проведение code review в Git"],
+  ["12 нояб.", "Тестирование агента, оформление кода и проведение code review в Git"],
+  ["13 нояб.", "Подготовка и защита отчёта по учебной практике"],
+  ["14 нояб.", "Подготовка и защита отчёта по учебной практике"]
+];
+
+/* =========================================================
+   ПОСТРОЕНИЕ ТАБЛИЦЫ (вложенность как в оригинале)
+   ========================================================= */
+
+const table = document.getElementById("journal-table");
+
+function buildTable() {
+  // ----- THEAD -----
+  const thead = document.createElement("thead");
+
+  // --- Строка 1: темы + закреплённый столбец + «итог 1» ---
+  const tr1 = document.createElement("tr");
+
+  // Закреплённый столбец ФИО: в оригинале rowspan="4"
+  const thSticky = document.createElement("th");
+  thSticky.className = "sticky-col";
+  thSticky.rowSpan = 4;
+  thSticky.style.minWidth = "220px";
+  thSticky.style.verticalAlign = "top";
+  thSticky.style.paddingTop = "10px";
+  thSticky.innerHTML = '<div style="text-align:left;padding:0 10px;font-size:11px;color:#5a5c66;">Список студентов</div>';
+  tr1.appendChild(thSticky);
+
+  // Заголовки тем
+  TOPICS.forEach(t => {
+    const th = document.createElement("th");
+    th.colSpan = t.cols;
+    th.className = "topic-head";
+    th.title = t.title;
+    th.innerHTML = `<span class="topic-text">${t.title}</span>`;
+    tr1.appendChild(th);
+  });
+
+  // Столбец «итог 1» с rowspan="2" (как в оригинале)
+  const thAvg = document.createElement("th");
+  thAvg.className = "avg-head";
+  thAvg.rowSpan = 2;
+  thAvg.style.width = "48px";
+  thAvg.innerHTML = "итог<br>1";
+  tr1.appendChild(thAvg);
+
+  thead.appendChild(tr1);
+
+  // --- Строка 2: даты ---
+  const tr2 = document.createElement("tr");
+  TOPICS.forEach(t => {
+    const th = document.createElement("th");
+    th.colSpan = t.cols;
+    th.className = "date-head";
+    th.textContent = t.date;
+    tr2.appendChild(th);
+  });
+  thead.appendChild(tr2);
+
+  // --- Строка 3: подписи «ДП» под каждым столбцом ---
+  const tr3 = document.createElement("tr");
+  TOPICS.forEach(t => {
+    for (let i = 0; i < t.cols; i++) {
+      const th = document.createElement("th");
+      th.className = "kind-head";
+      th.textContent = "ДП";
+      tr3.appendChild(th);
+    }
+  });
+  thead.appendChild(tr3);
+
+  table.appendChild(thead);
+
+  // ----- TBODY -----
+  const tbody = document.createElement("tbody");
+  STUDENTS.forEach((name, idx) => {
+    const tr = document.createElement("tr");
+    if (idx % 2 === 1) tr.className = "row-alt";
+
+    // Ячейка ученика
+    const tdStudent = document.createElement("td");
+    tdStudent.className = "sticky-col student-cell";
+    tdStudent.innerHTML = `<span class="student-num">${idx + 1}</span><span class="student-name">${name}</span>`;
+    tr.appendChild(tdStudent);
+
+    // Ячейки оценок
+    TOPICS.forEach((topic, tIdx) => {
+      for (let c = 0; c < topic.cols; c++) {
+        const td = document.createElement("td");
+        td.className = "mark-cell";
+        td.dataset.student = name;
+        td.dataset.studentIdx = idx;
+        td.dataset.topicIdx = tIdx;
+        td.dataset.topic = topic.title;
+        td.dataset.col = c;
+        td.dataset.grade = "";
+        td.dataset.type = "ДП"; // тип по умолчанию
+        tr.appendChild(td);
+      }
+    });
+
+    // Средний балл
+    const tdAvg = document.createElement("td");
+    tdAvg.className = "avg-cell";
+    tdAvg.textContent = "0,00";
+    tr.appendChild(tdAvg);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+}
+
+/* =========================================================
+   НИЖНЯЯ ПАНЕЛЬ ЗАНЯТИЙ
+   ========================================================= */
+function buildLessons() {
+  const tbody = document.querySelector(".lessons tbody");
+  LESSONS.forEach((l, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${i + 1}</td><td>${l[0]}</td><td>${l[1]}</td><td class="hw-none">Не добавлено</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* =========================================================
+   ПОПАП
+   ========================================================= */
+const popup = document.getElementById("grade-popup");
+const popupTitle = document.getElementById("popup-title");
+const gradeRow = document.getElementById("grade-row");
+const typeRow = document.getElementById("type-row");
+
+let activeCell = null;
+let selectedGrade = "";
+let selectedType = "ДП";
+
+function openPopup(cell, evt) {
+  activeCell = cell;
+
+  // Заголовок попапа: ФИО + тема
+  popupTitle.textContent = `${cell.dataset.student} — ${cell.dataset.topic.slice(0, 40)}…`;
+
+  // Восстанавливаем текущие значения
+  selectedGrade = cell.dataset.grade || "";
+  selectedType = cell.dataset.type || "ДП";
+  highlightGrade(selectedGrade);
+  highlightType(selectedType);
+
+  popup.classList.add("open");
+
+  // Позиционирование рядом с ячейкой
+  const rect = cell.getBoundingClientRect();
+  const popupW = 280;
+  const popupH = 260;
+  let left = rect.left + window.scrollX + rect.width / 2 - popupW / 2;
+  let top = rect.bottom + window.scrollY + 4;
+
+  // Не выходим за пределы окна
+  if (left < 8) left = 8;
+  if (left + popupW > window.innerWidth - 8) left = window.innerWidth - popupW - 8;
+  if (top + popupH > window.scrollY + window.innerHeight - 8) {
+    top = rect.top + window.scrollY - popupH - 4;
+  }
+
+  popup.style.left = left + "px";
+  popup.style.top = top + "px";
+}
+
+function closePopup() {
+  popup.classList.remove("open");
+  activeCell = null;
+}
+
+function highlightGrade(value) {
+  gradeRow.querySelectorAll(".grade-opt").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.grade === value);
+  });
+}
+
+function highlightType(value) {
+  typeRow.querySelectorAll(".type-opt").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.type === value);
+  });
+}
+
+/* --- Обработчики кликов --- */
+
+gradeRow.addEventListener("click", e => {
+  const btn = e.target.closest(".grade-opt");
+  if (!btn) return;
+  selectedGrade = btn.dataset.grade;
+  highlightGrade(selectedGrade);
+});
+
+typeRow.addEventListener("click", e => {
+  const btn = e.target.closest(".type-opt");
+  if (!btn) return;
+  selectedType = btn.dataset.type;
+  highlightType(selectedType);
+});
+
+document.getElementById("popup-close").addEventListener("click", closePopup);
+document.getElementById("popup-cancel").addEventListener("click", closePopup);
+
+document.getElementById("popup-clear").addEventListener("click", () => {
+  selectedGrade = "";
+  highlightGrade(selectedGrade);
+});
+
+document.getElementById("popup-save").addEventListener("click", () => {
+  if (!activeCell) return;
+  applyGrade(activeCell, selectedGrade, selectedType);
+  closePopup();
+});
+
+// Клик вне попапа — закрыть
+document.addEventListener("mousedown", e => {
+  if (!popup.classList.contains("open")) return;
+  if (popup.contains(e.target)) return;
+  if (e.target.closest(".mark-cell")) return; // клик по другой ячейке обрабатывается отдельно
+  closePopup();
+});
+
+/* =========================================================
+   ПРИМЕНЕНИЕ ОЦЕНКИ
+   ========================================================= */
+function applyGrade(cell, grade, type) {
+  cell.dataset.grade = grade;
+  cell.dataset.type = type;
+
+  // Очистка
+  cell.innerHTML = "";
+  cell.classList.toggle("filled", grade !== "");
+
+  if (!grade) return;
+
+  // Показываем оценку
+  let markClass = "mark-" + grade;
+  if (grade === "б") markClass = "mark-b";
+  if (grade === "н") markClass = "mark-n";
+
+  const span = document.createElement("span");
+  span.className = "mark " + markClass;
+  span.textContent = grade;
+  cell.appendChild(span);
+
+  // Маленькая подпись типа работы
+  if (type && type !== "ДП") {
+    const badge = document.createElement("span");
+    badge.style.cssText = "position:absolute;bottom:2px;right:2px;font-size:8px;color:#87879b;";
+    badge.textContent = type;
+    cell.appendChild(badge);
+  }
+}
+
+/* =========================================================
+   КЛИК ПО ЯЧЕЙКАМ ЖУРНАЛА
+   ========================================================= */
+function attachCellHandlers() {
+  document.querySelectorAll(".mark-cell").forEach(cell => {
+    cell.addEventListener("click", e => {
+      e.stopPropagation();
+      openPopup(cell, e);
+    });
+  });
+}
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
+buildTable();
+buildLessons();
+attachCellHandlers();
+</script>
+
+</body>
+</html>
